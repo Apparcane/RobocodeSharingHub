@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from app.db import get_db
 from app.models.workshop import Workshop
@@ -21,9 +22,16 @@ async def create_workshop(workshop: WorkshopCreate, db: AsyncSession = Depends(g
 
 @router.get("/", response_model=list[WorkshopResponse], status_code=status.HTTP_200_OK)
 async def get_workshops(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Workshop))
+    result = await db.execute(select(Workshop).options(selectinload(Workshop.author)))
     workshops = result.scalars().all()
-    return workshops
+    
+    response_list = []
+    for w in workshops:
+        item = WorkshopResponse.model_validate(w)
+        item.author_username = w.author.username if w.author else None
+        response_list.append(item)
+
+    return response_list
 
 @router.get("/{workshop_id}", response_model=WorkshopDetailResponse, status_code=status.HTTP_200_OK)
 async def get_workshop_readme(workshop_id: int, db: AsyncSession = Depends(get_db)):
@@ -55,7 +63,7 @@ async def delete_workshop(workshop_id: int, db: AsyncSession = Depends(get_db), 
 
     return {"detail": "Workshop deleted successfully"}
 
-@router.put("/{workshop_id}", response_model=WorkshopResponse)
+@router.put("/{workshop_id}", response_model=WorkshopResponse, status_code=status.HTTP_200_OK)
 async def update_workshop(workshop_id: int, workshop_update: WorkshopCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     workshop = await db.get(Workshop, workshop_id)
 
@@ -71,4 +79,4 @@ async def update_workshop(workshop_id: int, workshop_update: WorkshopCreate, db:
 
     await db.commit()
     await db.refresh(workshop)
-    return workshop
+    return {"detail": "Workshop updated successfully"}

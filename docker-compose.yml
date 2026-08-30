@@ -25,5 +25,16 @@ services:
     depends_on:
       - db
 
+  frontend:
+    build: ./frontend
+    container_name: workshop_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - web
+
 volumes:
   postgres_data:

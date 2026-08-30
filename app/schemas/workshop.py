@@ -13,6 +13,7 @@ class WorkshopResponse(WorkshopBase):
     id: int
     is_published: bool
     author_id: int
+    author_username: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -30,7 +30,7 @@ async def get_users(db: AsyncSession = Depends(get_db)):
     users = result.scalars().all()
     return users
 
-@router.get("/login", response_model=Token)
+@router.post("/login", response_model=Token)
 async def login_user(
                         form_data: OAuth2PasswordRequestForm = Depends(),
                         db: AsyncSession = Depends(get_db)):

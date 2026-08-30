@@ -22,8 +22,7 @@ async def test_create_workspace_success(client: AsyncClient):
     reg_response = await client.post("/auth/register", json=user_data)
     assert reg_response.status_code in (200, 201)
 
-    login_response = await client.request(
-        "GET",
+    login_response = await client.post(
         "/auth/login",
         data={
             "username": user_data["email"], 
